@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">InterceptEvents_TVN</string>
+    <string name="title1">Записная книжка в SharedPreferences</string>
+    <string name="title2">Spinner "Страна-город-улица"</string>
+    <string name="title3">CalendarView "Сроки задач"</string>
+    <string name="subtitle1">Компоненты ViewGroup</string>
+    <string name="subtitle2">Компоненты View. Иерархия View</string>
+</resources>
