@@ -5,4 +5,8 @@
     <string name="title3">CalendarView "Сроки задач"</string>
     <string name="subtitle1">Компоненты ViewGroup</string>
     <string name="subtitle2">Компоненты View. Иерархия View</string>
+    <string name="author">Туманов</string>
+    <string name="run_request">Переход в request_code_write</string>
+    <string name="not_run_request">Не выполнен run_request_code</string>
+    <string name="delete_file">Фаил удален</string>
 </resources>
