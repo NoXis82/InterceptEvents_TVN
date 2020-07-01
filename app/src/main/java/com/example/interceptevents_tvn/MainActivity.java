@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity implements onRequestPermissionResult {
+public class MainActivity extends AppCompatActivity {
 
     private Random random = new Random();
     private ItemDataAdapter adapter;
