@@ -28,34 +28,37 @@ import java.util.Random;
 public class MainActivity extends AppCompatActivity {
 
     private Random random = new Random();
+    private ListView listView;
     private ItemDataAdapter adapter;
     private List<ItemData> samples = new ArrayList<>();
     public static final int REQUEST_CODE_PERMISSION_WRITE_STORAGE = 100;
     private static final String FILE_NAME_SAMPLES = "samples.txt";
+    private File sampleFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ListView listView = findViewById(R.id.listView);
+        sampleFile = new File(getApplicationContext().getExternalFilesDir(null),
+                FILE_NAME_SAMPLES);
+        adapter = new ItemDataAdapter(this, null);
+        listView = findViewById(R.id.listView);
         FloatingActionButton fab = findViewById(R.id.fab);
         fillSamples();
+        startReadSampleFile();
         fab.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 permissionStatus();
-
             }
         });
-        adapter = new ItemDataAdapter(this, null);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 showItemData(position);
-
             }
         });
         listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -66,32 +69,47 @@ public class MainActivity extends AppCompatActivity {
                                            int position,
                                            long id) {
                 adapter.removeItem(position);
-                readerDataFile();
+                comparingSampleFile();
                 return true;
             }
         });
     }
 
+    private void startReadSampleFile() {
+        if (isExternalStorageReadable()) {
+            String[] startSample = new String[0];
+            try (FileReader fileReader = new FileReader(sampleFile)) {
+                String lineSample;
+                BufferedReader br = new BufferedReader(fileReader);
+                while ((lineSample = br.readLine()) != null) {
+                    startSample = lineSample.split(";");
+                }
+                for (String list : startSample) {
+                    adapter.addItem(new ItemData(list, random.nextBoolean()));
+                    listView.setAdapter(adapter);
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
     private void fillSamples() {
-        samples.add(new ItemData(getDrawable(R.drawable.calendar),
+        samples.add(new ItemData(
                 getString(R.string.title3),
-                getString(R.string.subtitle2),
                 random.nextBoolean()));
-        samples.add(new ItemData(getDrawable(R.drawable.spinner),
+        samples.add(new ItemData(
                 getString(R.string.title2),
-                getString(R.string.subtitle2),
                 random.nextBoolean()));
-        samples.add(new ItemData(getDrawable(R.drawable.notes),
+        samples.add(new ItemData(
                 getString(R.string.title1),
-                getString(R.string.subtitle1),
                 random.nextBoolean()));
     }
 
     private void showItemData(int position) {
         ItemData itemData = adapter.getItem(position);
-        Toast.makeText(MainActivity.this,
+        Toast.makeText(this,
                 "Title: " + itemData.getTitle() + "\n" +
-                        "Subtitle: " + itemData.getSubtitle() + "\n" +
                         "Checked: " + itemData.isChecked(),
                 Toast.LENGTH_SHORT).show();
     }
@@ -101,8 +119,7 @@ public class MainActivity extends AppCompatActivity {
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
         );
         if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
-            saveItemDataToFile();  // добавить метод сохранение строк в файл
-
+            saveItemDataToFile();
         } else {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
@@ -111,47 +128,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void readerDataFile() {
+    public void comparingSampleFile() {
         if (isExternalStorageReadable()) {
-            File sampleFile = new File(getApplicationContext().getExternalFilesDir(null),
-                    FILE_NAME_SAMPLES);
             String[] text = new String[0];
-            try {
+            try (FileReader fileReader = new FileReader(sampleFile)) {
                 String line;
-                FileReader fileReader = new FileReader(sampleFile);
                 BufferedReader br = new BufferedReader(fileReader);
                 while ((line = br.readLine()) != null) {
                     text = line.split(";");
                 }
                 if (adapter.getCount() != text.length) {
                     boolean deleteFile = sampleFile.delete();
-                    if(deleteFile) {
+                    if (deleteFile) {
                         Toast.makeText(this,
                                 R.string.delete_file,
                                 Toast.LENGTH_SHORT).show();
                     }
-                    sampleFile = new File(getApplicationContext().getExternalFilesDir(null),
-                            FILE_NAME_SAMPLES);
-                    FileWriter fileWriter = null;
-                    try {
-                        fileWriter = new FileWriter(sampleFile, true);
-
+                    try (FileWriter fileWriter = new FileWriter(sampleFile, true)) {
                         for (int i = 0; i < adapter.getCount(); i++) {
-                            fileWriter.append(adapter.getItem(i).getTitle()).append(" ").
-                                    append(adapter.getItem(i).getSubtitle()).
-                                    append(" - ").append(getString(R.string.author)).append(";");
+                            fileWriter.append(adapter.getItem(i).getTitle()).append(";");
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
-                    } finally {
-                        try {
-                            if (fileWriter != null) {
-                                fileWriter.close();
-                            }
-                        } catch (IOException ex) {
-                            ex.printStackTrace();
-                        }
-
                     }
                 }
             } catch (IOException e) {
@@ -162,26 +160,12 @@ public class MainActivity extends AppCompatActivity {
 
     public void saveItemDataToFile() {
         if (isExternalStorageWritable()) {
-            File sampleFile = new File(getApplicationContext().getExternalFilesDir(null),
-                    FILE_NAME_SAMPLES);
-            FileWriter fileWriter = null;
-            try {
-                fileWriter = new FileWriter(sampleFile, true);
+            try (FileWriter fileWriter = new FileWriter(sampleFile, true)) {
                 int randomValue = random.nextInt(samples.size());
                 adapter.addItem(samples.get(randomValue));
-                fileWriter.append(samples.get(randomValue).getTitle()).append(" ").
-                        append(samples.get(randomValue).getSubtitle()).
-                        append(" - ").append(getString(R.string.author)).append(";");
+                fileWriter.append(samples.get(randomValue).getTitle()).append(";");
             } catch (IOException e) {
                 e.printStackTrace();
-            } finally {
-                try {
-                    if (fileWriter != null) {
-                        fileWriter.close();
-                    }
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
             }
         }
     }

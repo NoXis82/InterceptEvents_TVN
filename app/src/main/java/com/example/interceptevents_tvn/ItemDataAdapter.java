@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -65,13 +64,9 @@ public class ItemDataAdapter extends BaseAdapter {
             view = inflater.inflate(R.layout.item_list_view, parent, false);
         }
         ItemData itemData = items.get(position);
-        ImageView image = view.findViewById(R.id.icon);
         TextView title = view.findViewById(R.id.title);
-        TextView subtitle = view.findViewById(R.id.subtitle);
         CheckBox checkBox = view.findViewById(R.id.checkbox);
-        image.setImageDrawable(itemData.getImage());
         title.setText(itemData.getTitle());
-        subtitle.setText(itemData.getSubtitle());
         checkBox.setOnCheckedChangeListener(myCheckChangeList);
         checkBox.setTag(position);
         checkBox.setChecked(itemData.isChecked());
